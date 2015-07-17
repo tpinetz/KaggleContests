@@ -1,25 +1,25 @@
-class CleanData:
-
-	def __init__():
-		self.data = []
+class CleanData:	
+	def getDataCsv(filename, header = True):
+		raw_data = open(filename,"r").read()
+		data = []
+		yData = []
+		for row in data.split('\n')
+			split_row = row.split(',')
+			yData.append(int(split_row[1]))
+			curRow = []
+			for item in split_row[2:]:
+				if item >= 'A' and item <= 'Z':
+					curRow.append(float(ord(item) - 65))
+				else:
+					curRow.append(float(item))
+			data.append(curRow)
+		
+		return data
+		
 	
-	def splitData(filename):
-		rows = open(filename, "r").read().split('\n')
-
-		count = len(rows)
-		trainSplit = int(count*0.6)
-		testSplit = int(trainSplit + count*0.2 )
-
-		train = open(filename + ".train", "w+")
-		test = open(filename + ".test","w+")
-		val = open(filename + ".val","w+")
-
-
-		for i in range(0, trainSplit):
-			train.write(rows[i] + "\n")
-	
-		for i in range(trainSplit,testSplit):
-			test.write(rows[i] + "\n")
-
-		for i in range(testSplit,count):
-			val.write(rows[i] + "\n")
+	def splitData(data, train = 0.6, test = 0.2):
+		count = len(data)
+		trainSplit = int(count*train)
+		testSplit = int(trainSplit + count * test )
+		
+		return (data[:trainSplit], data[trainSplit:testSplit], data[testSplit:])
