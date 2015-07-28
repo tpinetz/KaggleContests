@@ -1,7 +1,7 @@
 import numpy as np
 
 class CleanDataHelper:	
-	def getDataCsv(filename, header = True, yValue= False):
+	def getDataCsv(self, filename, header = True, yValue= False):
 		raw_data = open(filename,"r").read()
 		data = []
 		yData = []
@@ -25,7 +25,7 @@ class CleanDataHelper:
 		
 		return (data, yData, ids)
 		
-	def normalizeData(data):
+	def normalizeData(self, data):
 		count = len(data)
 		mins = [999999 for i in range(0,len(data[0]))]
 		maxs = [-99999 for i in range(0,len(data[0]))]
@@ -46,14 +46,14 @@ class CleanDataHelper:
 		
 		return result
 	
-	def splitData(data, train = 0.6, test = 0.2):
+	def splitData(self, data, train = 0.6, test = 0.2):
 		count = len(data)
 		trainSplit = int(count*train)
 		testSplit = int(trainSplit + count * test )
 		
 		return (np.array(data[:trainSplit]), np.array(data[trainSplit:testSplit]), np.array(data[testSplit:]))
 
-	def validate(classifier, xdata, ydata):
+	def validate(self, classifier, xdata, ydata):
 		count = len(xdata)
 		cor = 0
 		dis=0

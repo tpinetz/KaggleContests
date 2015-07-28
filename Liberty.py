@@ -1,6 +1,7 @@
 import numpy as np
 from CleanDataClass import CleanDataHelper
-from sklearn import linear_model
+from sklearn.linear_model import SGDRegressor
+from sklearn.preprocessing import StandardScaler
 from sklearn import svm
 import sys
 import random
@@ -12,39 +13,60 @@ data = []
 ydata = []
 ids = []
 
-(data,ydata, ids) = CleanDataHelper.getDataCsv(sys.argv[1])
-(dataTest, ydataTest, ids) = CleanDataHelper.getDataCsv(sys.argv[2], yValue=True)
 
-data = CleanDataHelper.normalizeData(data)
-
-random.shuffle(data)
-
-(trainX, testX, valX) = CleanDataHelper.splitData(data,1.,0.0)
-(trainY, testY, valY) = CleanDataHelper.splitData(ydata,1.,0.0)
-
-#print(trainX.shape)
-#print(trainY.shape)
+#### Support vector Machine ####
+def trainSVM(trainX,trainY):
+	clf = svm.SVC(gamma=0.001, c = 100)
+	clf.fit(trainX, trainY)
+	return clf
 
 #### Stochastic Gradient Descent ####
 #### Hard underfitting ####
+def trainSGD(trainX, trainY):
+	clf = SGDRegressor(loss="squared_loss",n_iter = np.ceil(10**6))
+	clf.fit(trainX, trainY)
+	return clf	
 
-#clf = linear_model.SGDClassifier(n_iter=100, loss='log', alpha = 0.01)
-#clf.fit(trainX,trainY)
 
-#### Support vector Machine ####
+(data,ydata, ids) = helper.getDataCsv(sys.argv[1])
 
-#print("Start Training!")
+if len(sys.argv) > 2:
+	(dataTest, ydataTest, ids) = helper.getDataCsv(sys.argv[2], yValue=True)
+	
+	
+#data = helper.normalizeData(data)
 
-clf = svm.SVC(gamma=0.001, C = 100)
-clf.fit(trainX,trainY)
+random.shuffle(data)
 
-#print("Start validating")
 
-#CleanDataHelper.validate(clf,testX,testY)
-#CleanDataHelper.validate(clf,testX,testY)
+if len(sys.argv) > 2:
+	(trainX, testX, valX) = helper.splitData(data,1.,0.)
+	(trainY, testY, valY) = helper.splitData(ydata,1.,0.)
+else:
+	(trainX, testX, valX) = helper.splitData(data,0.5,0.3)
+	(trainY, testY, valY) = helper.splitData(ydata,0.5,0.3)
 
-print('Id,Hazard')
 
-for i, row in enumerate(dataTest):
-	print(str(ids[i]) + ","+str(int(round(clf.predict(row)[0]))))
+scaler = StandardScaler()
+scaler.fit(trainX)
+trainX = scaler.transform(trainX)
 
+
+if len(sys.argv) < 3:
+	print("Start Training!")
+	testX = scaler.transform(testX)
+
+clf = trainSGD(trainX, trainY)
+
+
+if len(sys.argv) < 3:
+	print(clf)
+	print("Start validating")
+	helper.validate(clf,testX,testY)
+
+
+if len(sys.argv) > 2:
+	dataTest = scaler.transform(dataTest)
+	print('Id,Hazard')
+	for i, row in enumerate(dataTest):
+		print(str(ids[i]) + ","+str(clf.predict(row)[0]))
