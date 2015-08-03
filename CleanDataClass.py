@@ -1,15 +1,22 @@
 import numpy as np
+import random
+from sklearn import preprocessing
 
 class CleanDataHelper:	
-	def getDataCsv(self, filename, header = True, yValue= False):
+	def getDataCsv(self, filename, header = True, yValue= False, shuffle = True):
 		raw_data = open(filename,"r").read()
+
 		data = []
 		yData = []
 		ids = []
 
 		offset = (1 if header else 0)      
-		
-		for row in raw_data.split('\n')[offset:]:
+		raw_data = raw_data.split('\n')[offset:]
+
+		if shuffle:
+			random.shuffle(raw_data)
+
+		for row in raw_data:
 			split_row = row.split(',')
 			if len(split_row) < 2:
 				continue
@@ -46,12 +53,17 @@ class CleanDataHelper:
 		
 		return result
 	
-	def splitData(self, data, train = 0.6, test = 0.2):
+	def splitData(self, data, train = 0.6):
 		count = len(data)
 		trainSplit = int(count*train)
-		testSplit = int(trainSplit + count * test )
 		
-		return (np.array(data[:trainSplit]), np.array(data[trainSplit:testSplit]), np.array(data[testSplit:]))
+		return (np.array(data[:trainSplit]), np.array(data[trainSplit:]))
+
+	def normalizeWithMinMaxScaler(self, train, test):
+		min_max_scaler = preprocessing.MinMaxScaler()
+		train = min_max_scaler.fit_transform(train)
+		test = min_max_scaler.transform(test)
+		return (train, test)
 
 	def validate(self, classifier, xdata, ydata):
 		count = len(xdata)
