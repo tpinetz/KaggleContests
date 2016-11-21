@@ -92,15 +92,16 @@ def run_script():
     val_set = FishDataset('../train', 'val')
 
     sgd = SGD(lr=1e-2, decay=1e-6, momentum=0.9, nesterov=True)
-    model = models.MyTestModel(sgd, (32, 32))
+    model = models.MyTestModel(sgd, (32, 32)).getModel()
    
     callbacks = [
         EarlyStopping(monitor='val_loss', patience=3, verbose=0),
     ]
-    history = model.fit(train_set.data, np_utils.to_categorical(train_set.labels),
+    
+    history = model.fit(train_set.data, np_utils.to_categorical(train_set.labels, train_set.nclasses()),
               batch_size=batch_size, nb_epoch=nb_epoch,
               shuffle=True, verbose=2, 
-              validation_data=(val_set.data, np_utils.to_categorical(val_set.labels)),
+              validation_data=(val_set.data, np_utils.to_categorical(val_set.labels, val_set.nclasses())),
               callbacks=callbacks)
 
     print('Generating model dump in best_model.h5')

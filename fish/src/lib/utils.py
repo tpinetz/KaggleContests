@@ -1,9 +1,11 @@
 import scipy.misc
 import pandas as pd
+import numpy as np
 
 def get_im(path):
     img = scipy.misc.imread(path)
     img = scipy.misc.imresize(img, (32, 32))
+    img = np.reshape(img, (3, 32, 32))
 
     return img
 
