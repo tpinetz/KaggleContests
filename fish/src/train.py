@@ -115,11 +115,10 @@ def run_submission(history, models):
     num_fold = 0
     yfull_test = []
     test_id = []
-    nfolds = len(models)
 
     test = FishDataset('../test', 'test')
     test_prediction = model.predict(test_data, batch_size=batch_size, verbose=2)
-    
+
     test_res = merge_several_folds_mean(yfull_test, nfolds)
     info_string = 'loss_' + history.history['loss'] \
                 + '_folds_' + str(nfolds)
