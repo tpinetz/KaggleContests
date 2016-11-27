@@ -1,6 +1,7 @@
 import scipy.misc
 import pandas as pd
 import numpy as np
+import datetime
 
 def get_im(path):
     img = scipy.misc.imread(path)
@@ -9,9 +10,9 @@ def get_im(path):
 
     return img
 
-def create_submission(predictions, testset):
+def create_submission(predictions, ids, info):
     result1 = pd.DataFrame(predictions, columns=['ALB', 'BET', 'DOL', 'LAG', 'NoF', 'OTHER', 'SHARK', 'YFT'])
-    result1.loc[:, 'image'] = pd.Series(testset.ids, index=result1.index)
+    result1.loc[:, 'image'] = pd.Series(ids, index=result1.index)
     now = datetime.datetime.now()
     sub_file = 'submission_' + info + '_' + str(now.strftime("%Y-%m-%d-%H-%M")) + '.csv'
     result1.to_csv(sub_file, index=False)

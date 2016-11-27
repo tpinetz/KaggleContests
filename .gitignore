@@ -14,3 +14,8 @@
 # Dataset
 *.jpg
 *.DS_Store
+
+# Logs
+*.h5
+*.csv
+*.zip

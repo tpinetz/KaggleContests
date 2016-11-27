@@ -27,7 +27,7 @@ class FishDataset(Dataset):
                 print('Load folder {} (Index: {})'.format(fld, index))
                 path = os.path.join(fdir, fld, '*.jpg')
                 files = glob.glob(path)
-                
+
                 split_idx = int(len(files)*0.8)
                 if split == 'train':
                     files = files[:split_idx]
@@ -40,6 +40,4 @@ class FishDataset(Dataset):
                     labels.append(index)
                     ids.append(flbase)
             
-          
-            
-            Dataset.__init__(self, np.array(data, dtype=np.uint8), np.array(labels, dtype=np.uint8), ids)
+        Dataset.__init__(self, np.array(data, dtype=np.float32), np.array(labels, dtype=np.float32), ids)

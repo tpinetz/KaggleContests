@@ -5,10 +5,10 @@ class Dataset(object):
         self.data = data
         self.labels = labels
         self.ids = ids
-    
+
     def size(self):
         return len(self.data)
-    
+
     def nclasses(self):
         return len(np.unique(self.labels))
 
