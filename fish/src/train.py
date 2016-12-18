@@ -9,14 +9,20 @@ import os
 import time
 import json
 
-from keras.optimizers import SGD
-from keras.callbacks import EarlyStopping
+from keras.optimizers import SGD, RMSprop, Adam
+from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.utils import np_utils
 from sklearn.metrics import log_loss
+from keras.preprocessing.image import ImageDataGenerator
 from keras import __version__ as keras_version
 from lib.fish_dataset import FishDataset
 import lib.models as models
-from lib.utils import create_submission
+from lib.utils import (create_submission, get_train_data, 
+                       to_categorical, normalize_per_channel,
+                       get_test_data)
+from sklearn.model_selection import train_test_split
+
+classes = ['ALB', 'BET', 'DOL', 'LAG', 'NoF', 'OTHER', 'SHARK', 'YFT']
 
 
 def get_validation_predictions(train_data, predictions_valid):
@@ -32,23 +38,42 @@ def run_script(path):
     nb_epoch = 100
     random_state = 51
 
-    train_set = FishDataset(path + '/../train', 'train')
-    val_set = FishDataset(path + '/../train', 'val')
-
-    train_set.data /= 255
-    val_set.data /= 255
-
+    # Creating Model
+    print('Instancing model')
     sgd = SGD(lr=1e-2, decay=1e-6, momentum=0.9, nesterov=True)
-    model = models.MyTestModel(sgd, (32, 32)).getModel()
+    model = models.InceptionModel(Adam(lr=0.0045), (32, 32)).getModel()
+
+    X, y, _ = get_train_data(path + '/../train', classes)
+    y = to_categorical(y)
+
+    print('Finished Loading')
+    X = normalize_per_channel(X)
+
+    datagen = ImageDataGenerator(
+        featurewise_center=True,
+        featurewise_std_normalization=True,
+        rotation_range=20,
+        width_shift_range=0.2,
+        height_shift_range=0.2,
+        horizontal_flip=True
+    )
+
+    X_train, X_valid, y_train, y_valid = train_test_split(X, y, 
+                                                    test_size=0.2, random_state=23, 
+                                                    stratify=y)
    
+    datagen.fit(X_train)
+
     callbacks = [
         EarlyStopping(monitor='val_loss', patience=3, verbose=0),
+        ModelCheckpoint(filepath="weights.hdf5", verbose=1, save_best_only=True)
     ]
     
-    history = model.fit(train_set.data, np_utils.to_categorical(train_set.labels, train_set.nclasses()),
-              batch_size=batch_size, nb_epoch=nb_epoch,
-              shuffle=True, verbose=2, 
-              validation_data=(val_set.data, np_utils.to_categorical(val_set.labels, val_set.nclasses())),
+    print('Start training')
+
+    history = model.fit_generator(datagen.flow(X_train, y_train, batch_size=batch_size),
+              samples_per_epoch=len(X_train), nb_epoch=nb_epoch, verbose=2, 
+              validation_data=(X_valid, y_valid),
               callbacks=callbacks)
 
     print('Generating model dump in best_model.h5')
@@ -63,10 +88,11 @@ def run_submission(path, history, model):
     yfull_test = []
     test_id = []
 
-    test = FishDataset(path + '/../test', 'test')
-    test_prediction = model.predict(test.data, batch_size=batch_size, verbose=2)
+    X, ids = get_test_data(path + '/../test')
+    X = normalize_per_channel(X)
+    test_prediction = model.predict(X, batch_size=batch_size, verbose=2)
 
-    create_submission(test_prediction, test.ids, str(np.min(history.history['loss'])))
+    create_submission(test_prediction, ids, str(np.min(history.history['loss'])))
 
 
 if __name__ == '__main__':
